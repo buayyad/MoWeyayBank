@@ -1,6 +1,6 @@
 import axios from "axios";
 const instance = axios.create({
-  baseURL: "/mini-project/api/",
+  baseURL: "https://react-bank-project.eapi.joincoded.com/mini-project/api",
 });
 
 export default instance;

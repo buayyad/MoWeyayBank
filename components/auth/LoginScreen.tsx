@@ -16,10 +16,17 @@ const LoginScreen = () => {
     password: "",
   });
   console.log(userinfo);
-  const { mutate } = useMutation({
+  const { mutate, data } = useMutation({
     mutationKey: ["login"],
     mutationFn: login,
+    onError: (error) => {
+      console.log("Login failed:", error);
+    },
+    onSuccess: () => {
+      console.log("Created Successfuly!");
+    },
   });
+  console.log(data);
   return (
     <View style={styles.screen}>
       <View style={styles.container}>
@@ -34,30 +41,39 @@ const LoginScreen = () => {
           <View style={styles.inputBackground} />
           <TextInput
             style={styles.inputLabel}
+            placeholder="Username"
             onChangeText={(text) =>
               setUserInfo({ ...userinfo, username: text })
             }
-          >
-            Username
-          </TextInput>
+          ></TextInput>
         </View>
 
         {/* Password field */}
         <View style={[styles.inputWrapper, { top: 473 }]}>
           <View style={styles.inputBackground} />
-          <TextInput style={styles.inputLabel}>Password</TextInput>
+          <TextInput
+            style={styles.inputLabel}
+            placeholder="Password"
+            onChangeText={(text) =>
+              setUserInfo({ ...userinfo, password: text })
+            }
+          ></TextInput>
         </View>
 
         <Text style={styles.forgotPassword}>Forgot your password?</Text>
 
         {/* Primary button */}
-        <TouchableOpacity style={styles.signInButton} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.signInButton}
+          activeOpacity={0.8}
+          onPress={() => mutate(userinfo)}
+        >
           <View style={styles.signInButtonBg} />
           <Text style={styles.signInButtonText}>Sign in</Text>
         </TouchableOpacity>
 
         {/* Bottom CTA */}
-        <Text style={styles.bottomText}>Don’t have an account?</Text>
+        <Text style={styles.bottomText}>"Don’t" have an account?</Text>
         <TouchableOpacity style={styles.bottomLinkWrapper}>
           <Text style={styles.bottomLink}>Sign up</Text>
         </TouchableOpacity>
@@ -163,7 +179,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
   },
   signInButtonText: {
-    color: "#FFFFFF",
+    color: "Black",
     fontFamily: "Poppins-Medium",
     fontSize: 16,
     fontWeight: "500",
@@ -172,7 +188,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 88,
     top: 741,
-    color: "#343434",
+    color: "White",
     fontFamily: "Poppins-Regular",
     fontSize: 12,
     fontWeight: "400",
