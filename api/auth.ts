@@ -4,7 +4,7 @@ interface UserInfo {
   password: string;
 }
 const login = async (userInfo: UserInfo) => {
-  const res = await instance.post("/auth/login");
+  const res = await instance.post("/auth/login", userInfo);
   return res.data;
 };
 

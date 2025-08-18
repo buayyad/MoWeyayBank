@@ -1,5 +1,5 @@
-import LoginScreen from "@/components/auth/LoginScreen";
+import RegisterScreen from "@/components/auth/RegisterScreen";
 
 export default function Index() {
-  return <LoginScreen />;
+  return <RegisterScreen />;
 }

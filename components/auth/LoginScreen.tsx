@@ -23,10 +23,9 @@ const LoginScreen = () => {
       console.log("Login failed:", error);
     },
     onSuccess: () => {
-      console.log("Created Successfuly!");
+      console.log("Logged In Successfuly!");
     },
   });
-  console.log(data);
   return (
     <View style={styles.screen}>
       <View style={styles.container}>
@@ -52,6 +51,7 @@ const LoginScreen = () => {
         <View style={[styles.inputWrapper, { top: 473 }]}>
           <View style={styles.inputBackground} />
           <TextInput
+            secureTextEntry
             style={styles.inputLabel}
             placeholder="Password"
             onChangeText={(text) =>
