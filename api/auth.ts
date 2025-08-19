@@ -4,12 +4,12 @@ interface UserInfo {
   password: string;
 }
 const login = async (userInfo: UserInfo) => {
-  const res = await instance.post("/auth/LoginScreen");
+  const res = await instance.post("/auth/login", userInfo);
   return res.data;
 };
 
 const register = async (userInfo: UserInfo) => {
-  const res = await instance.post("/auth/RegisterScreen", userInfo);
+  const res = await instance.post("/auth/register", userInfo);
   return res.data;
 };
 export { login, register };
