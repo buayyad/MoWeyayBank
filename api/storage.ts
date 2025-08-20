@@ -23,5 +23,47 @@ const deleteToken = async () => {
     console.error("Error deleting token:", error);
   }
 };
+// import { getToken } from "@/api/storage";
+
+const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "";
+
+async function authFetch(url: string, init: RequestInit = {}) {
+  const token = await getToken();
+  const headers = {
+    "Content-Type": "application/json",
+    ...(init.headers || {}),
+    Authorization: `Bearer ${token}`,
+  };
+  const res = await fetch(`${BASE_URL}${url}`, { ...init, headers });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function deposit(amount: number) {
+  return authFetch("/mini-project/api/transactions/deposit", {
+    method: "PUT",
+    body: JSON.stringify({ amount }),
+  });
+}
+
+export async function withdraw(amount: number) {
+  return authFetch("/mini-project/api/transactions/withdraw", {
+    method: "PUT",
+    body: JSON.stringify({ amount }),
+  });
+}
+
+export async function transfer(username: string, amount: number) {
+  return authFetch(
+    `/mini-project/api/transactions/transfer/${encodeURIComponent(username)}`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ amount }),
+    }
+  );
+}
 
 export { deleteToken, getToken, storeToken };
