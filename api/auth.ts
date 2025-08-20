@@ -18,4 +18,25 @@ const register = async (userInfo: UserInfo) => {
 
   return res.data;
 };
-export { login, register };
+export interface Profile {
+  balance: string;
+  username: string;
+  image: null | string;
+}
+
+const me = async () => {
+  const res = await instance.get("/auth/me");
+  console.log("res.data", res.data);
+  return res.data;
+};
+const profile = async () => {
+  const res = await instance.get("/auth/profile");
+  console.log("res.data", res.data);
+  return res.data;
+};
+const deposit = async (amount: number) => {
+  const res = await instance.put("/transactions/deposit", { amount });
+  return res.data;
+};
+
+export { deposit, login, me, profile, register };

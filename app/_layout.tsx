@@ -18,6 +18,7 @@ export default function RootLayout() {
     };
     checkToken();
   }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated }}>
