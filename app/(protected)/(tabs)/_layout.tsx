@@ -2,6 +2,7 @@ import AuthContext from "@/context/auth-context";
 import Feather from "@expo/vector-icons/Feather";
 import { Redirect, Tabs } from "expo-router";
 import React, { useContext } from "react";
+import { getToken } from "@/api/storage";
 
 const Colors = { primary: "#0C00DF" };
 const ProtectedLayout = () => {

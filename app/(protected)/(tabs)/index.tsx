@@ -1,6 +1,5 @@
-import { me } from "@/api/auth";
+import { deposit, me } from "@/api/auth";
 import { deleteToken } from "@/api/storage";
-import { deposit } from "@/api/auth";
 import AuthContext from "@/context/auth-context";
 import {
   Entypo,
@@ -13,6 +12,7 @@ import { Image } from "expo-image";
 import React, { useContext, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -22,12 +22,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-// import { Colors } from "react-native/Libraries/NewAppScreen";
 
 export default function HomeScreen() {
   const authState = useContext(AuthContext);
   const [modalVisible, setModalVisible] = useState(false);
-  const [amout, setAmount] = useState("");
+  const [withdrawModal, setWithdrawModal] = useState(false); // موديال السحب
+  const [amount, setAmount] = useState("");
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+
   const { mutate } = useMutation({
     mutationKey: ["deposit"],
     mutationFn: deposit,
@@ -35,9 +37,10 @@ export default function HomeScreen() {
       console.log("Created Successfully");
     },
     onError: (error) => {
-      console.log(error)
-    }
+      console.log(error);
+    },
   });
+
   const handleLogout = async () => {
     await deleteToken();
     authState.setIsAuthenticated(false);
@@ -60,6 +63,21 @@ export default function HomeScreen() {
       </View>
     );
   }
+
+  const handleWithdraw = () => {
+    const amountNum = +withdrawAmount;
+    if (amountNum > data.balance) {
+      Alert.alert("Error", "You don’t have enough balance!");
+      return;
+    }
+    // هنا تقدر تستدعي API لو عندك للسحب
+    console.log("Withdrawn:", amountNum);
+
+    // تحديث محلي للرصد (تقدر تغيرها حسب API)
+    data.balance -= amountNum;
+
+    setWithdrawModal(false);
+  };
 
   return (
     <ScrollView>
@@ -90,7 +108,7 @@ export default function HomeScreen() {
         <Text style={styles.cardVisa}>VISA</Text>
       </View>
 
-      {/* المودال */}
+      {/* موديال الإيداع */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -100,20 +118,70 @@ export default function HomeScreen() {
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Text style={styles.modalText}> Deposit Your Cash : </Text>
+
             <TextInput
-              style={{
-                ...styles.textInput,
-                marginBottom: 20,
-              }}
+              style={{ ...styles.textInput, marginBottom: 20 }}
               placeholder="Enter Amount"
               keyboardType="numeric"
               onChangeText={(text) => setAmount(text)}
             />
+
             <Pressable
               style={[styles.button, styles.buttonClose]}
-              onPress={() => mutate(+amout)}
+              onPress={() => {
+                mutate(+amount);
+                setModalVisible(false);
+              }}
             >
-              <Text style={styles.textStyle}>done</Text>
+              <Text style={styles.textStyle}>Done</Text>
+            </Pressable>
+
+            <Pressable
+              style={[
+                styles.button,
+                { backgroundColor: "gray", marginTop: 10 },
+              ]}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.textStyle}>Close</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      {/* موديال السحب */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={withdrawModal}
+        onRequestClose={() => setWithdrawModal(false)}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}> Withdraw Cash : </Text>
+
+            <TextInput
+              style={{ ...styles.textInput, marginBottom: 20 }}
+              placeholder="Enter Amount"
+              keyboardType="numeric"
+              onChangeText={(text) => setWithdrawAmount(text)}
+            />
+
+            <Pressable
+              style={[styles.button, styles.buttonClose]}
+              onPress={handleWithdraw}
+            >
+              <Text style={styles.textStyle}>Withdraw</Text>
+            </Pressable>
+
+            <Pressable
+              style={[
+                styles.button,
+                { backgroundColor: "gray", marginTop: 10 },
+              ]}
+              onPress={() => setWithdrawModal(false)}
+            >
+              <Text style={styles.textStyle}>Close</Text>
             </Pressable>
           </View>
         </View>
@@ -134,7 +202,10 @@ export default function HomeScreen() {
           <Text style={styles.actionText}>Transfer</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionBox}>
+        <TouchableOpacity
+          style={styles.actionBox}
+          onPress={() => setWithdrawModal(true)}
+        >
           <FontAwesome5 name="money-bill-wave" size={28} color="#0A0A60" />
           <Text style={styles.actionText}>Withdraw</Text>
         </TouchableOpacity>
@@ -142,6 +213,7 @@ export default function HomeScreen() {
     </ScrollView>
   );
 }
+
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: "center", justifyContent: "center" },
   title: { fontSize: 22, fontWeight: "700" },
@@ -212,11 +284,8 @@ const styles = StyleSheet.create({
   textInput: {
     height: 48,
     borderWidth: 1,
-    // borderColor: Colors.border,
     borderRadius: 15,
     paddingHorizontal: 14,
-    // backgroundColor: Colors.white,
-    // color: Colors.text,
   },
   modalView: {
     margin: 20,

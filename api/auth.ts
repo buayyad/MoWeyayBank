@@ -38,5 +38,9 @@ const deposit = async (amount: number) => {
   const res = await instance.put("/transactions/deposit", { amount });
   return res.data;
 };
+const withdrow = async (amount: number) => {
+  const res = await instance.put("/transactions/withdrow", { amount });
+  return res.data;
+};
 
-export { deposit, login, me, profile, register };
+export { deposit, login, me, profile, register , withdrow};
