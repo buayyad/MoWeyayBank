@@ -2,7 +2,6 @@ import AuthContext from "@/context/auth-context";
 import Feather from "@expo/vector-icons/Feather";
 import { Redirect, Tabs } from "expo-router";
 import React, { useContext } from "react";
-import { getToken } from "@/api/storage";
 
 const Colors = { primary: "#0C00DF" };
 const ProtectedLayout = () => {
@@ -40,7 +39,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="users" // لازم users.tsx
+        name="users"
         options={{
           title: "Users",
           tabBarIcon: ({ color, size }) => (

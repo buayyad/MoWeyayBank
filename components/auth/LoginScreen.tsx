@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import React, { useContext, useState } from "react";
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -30,6 +31,7 @@ const LoginScreen = () => {
     password: "",
   });
   const { isAuthenticated, setIsAuthenticated } = useContext(AuthContext);
+  const router = useRouter();
   const { mutate } = useMutation({
     mutationKey: ["login"],
     mutationFn: login,
@@ -38,10 +40,11 @@ const LoginScreen = () => {
     },
     onSuccess: () => {
       setIsAuthenticated(true);
-      useRouter().replace("/");
+      router.replace("/");
       Alert.alert("Welcome", "Signed in successfully!");
     },
   });
+
   return (
     <View style={styles.screenContainer}>
       <View style={styles.headerContainer}>
@@ -62,8 +65,11 @@ const LoginScreen = () => {
               Hello there, sign in to continue
             </Text>
 
-            <View style={styles.illustration}>
-              <View style={styles.lockCircle} />
+            <View style={styles.avatarContainer}>
+              <Image
+                source={require("@/assets/images/mopweyay.png")}
+                style={styles.avatar}
+              />
             </View>
 
             <View style={styles.fieldContainer}>
@@ -106,7 +112,7 @@ const LoginScreen = () => {
 
             <View style={styles.footerContainer}>
               <Text style={styles.footerText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={() => useRouter().push("/register")}>
+              <TouchableOpacity onPress={() => router.push("/register")}>
                 <Text style={styles.linkText}>Sign Up</Text>
               </TouchableOpacity>
             </View>
@@ -164,24 +170,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
-  illustration: {
-    height: 165,
-    borderRadius: 16,
-    backgroundColor: "#EDEBFF",
+  avatarContainer: {
     alignItems: "center",
-    justifyContent: "center",
     marginBottom: 20,
   },
-  lockCircle: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: Colors.white,
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+  avatar: {
+    width: 400,
+    height: 200,
+    // borderRadius: 50,
+    borderWidth: 2,
+    borderColor: Colors.primary,
   },
 
   fieldContainer: { marginTop: 14 },

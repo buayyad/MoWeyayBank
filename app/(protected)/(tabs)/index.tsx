@@ -1,5 +1,6 @@
-import { deposit, me } from "@/api/auth";
+import { me } from "@/api/auth";
 import { deleteToken } from "@/api/storage";
+import { deposit, withdrow } from "@/api/transaction";
 import AuthContext from "@/context/auth-context";
 import {
   Entypo,
@@ -7,7 +8,7 @@ import {
   Ionicons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import React, { useContext, useState } from "react";
 import {
@@ -26,27 +27,36 @@ import {
 export default function HomeScreen() {
   const authState = useContext(AuthContext);
   const [modalVisible, setModalVisible] = useState(false);
-  const [withdrawModal, setWithdrawModal] = useState(false); // موديال السحب
+  const [withdrawModal, setWithdrawModal] = useState(false);
   const [amount, setAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
+  const queryClient = useQueryClient();
 
-  const { mutate } = useMutation({
+  const { mutate: mutateDeposit } = useMutation({
     mutationKey: ["deposit"],
     mutationFn: deposit,
     onSuccess: () => {
       console.log("Created Successfully");
+      queryClient.invalidateQueries({ queryKey: ["user"] });
     },
     onError: (error) => {
       console.log(error);
     },
   });
-
+  const { mutate: mutateWithdraw } = useMutation<number, Error, number>({
+    mutationKey: ["withdrow"],
+    mutationFn: withdrow,
+    onSuccess: () => {
+      console.log("Created Successfully2");
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+    },
+  });
   const handleLogout = async () => {
     await deleteToken();
     authState.setIsAuthenticated(false);
   };
 
-  const { data, isLoading, isError, error, refetch } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["user"],
     queryFn: me,
   });
@@ -70,13 +80,22 @@ export default function HomeScreen() {
       Alert.alert("Error", "You don’t have enough balance!");
       return;
     }
-    // هنا تقدر تستدعي API لو عندك للسحب
     console.log("Withdrawn:", amountNum);
-
-    // تحديث محلي للرصد (تقدر تغيرها حسب API)
     data.balance -= amountNum;
-
+    mutateWithdraw(amountNum);
     setWithdrawModal(false);
+  };
+
+  const handleDeposit = () => {
+    const amountNum = +amount;
+    if (amountNum <= 0) {
+      Alert.alert("Error", "Enter a valid amount!");
+      return;
+    }
+    console.log("Deposited:", amountNum);
+    data.balance += amountNum;
+    mutateDeposit(amountNum);
+    setModalVisible(false);
   };
 
   return (
@@ -94,12 +113,11 @@ export default function HomeScreen() {
             </View>
           </View>
           <TouchableOpacity onPress={handleLogout}>
-            <Entypo name="log-out" size={24} color="red" />
+            <Entypo name="log-out" size={24} color="#b81010ff" />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* البطاقة */}
       <View style={styles.card}>
         <Text style={styles.cardName}>{data.username}</Text>
         <Text style={styles.cardType}>MoWeyay Premium Card</Text>
@@ -108,7 +126,6 @@ export default function HomeScreen() {
         <Text style={styles.cardVisa}>VISA</Text>
       </View>
 
-      {/* موديال الإيداع */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -120,7 +137,7 @@ export default function HomeScreen() {
             <Text style={styles.modalText}> Deposit Your Cash : </Text>
 
             <TextInput
-              style={{ ...styles.textInput, marginBottom: 20 }}
+              style={{ ...styles.textInput, marginBottom: 20, width: 100 }}
               placeholder="Enter Amount"
               keyboardType="numeric"
               onChangeText={(text) => setAmount(text)}
@@ -128,12 +145,9 @@ export default function HomeScreen() {
 
             <Pressable
               style={[styles.button, styles.buttonClose]}
-              onPress={() => {
-                mutate(+amount);
-                setModalVisible(false);
-              }}
+              onPress={handleDeposit}
             >
-              <Text style={styles.textStyle}>Done</Text>
+              <Text style={styles.textStyle}>Deposit</Text>
             </Pressable>
 
             <Pressable
@@ -149,7 +163,6 @@ export default function HomeScreen() {
         </View>
       </Modal>
 
-      {/* موديال السحب */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -158,10 +171,10 @@ export default function HomeScreen() {
       >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-            <Text style={styles.modalText}> Withdraw Cash : </Text>
+            <Text style={styles.modalText}> Withdraw Cash</Text>
 
             <TextInput
-              style={{ ...styles.textInput, marginBottom: 20 }}
+              style={[styles.textInput, { marginBottom: 20 }]}
               placeholder="Enter Amount"
               keyboardType="numeric"
               onChangeText={(text) => setWithdrawAmount(text)}
@@ -177,7 +190,7 @@ export default function HomeScreen() {
             <Pressable
               style={[
                 styles.button,
-                { backgroundColor: "gray", marginTop: 10 },
+                { backgroundColor: "#b81010ff", marginTop: 10 },
               ]}
               onPress={() => setWithdrawModal(false)}
             >
@@ -187,7 +200,6 @@ export default function HomeScreen() {
         </View>
       </Modal>
 
-      {/* الأزرار */}
       <View style={styles.actions}>
         <TouchableOpacity
           style={styles.actionBox}
@@ -239,7 +251,7 @@ const styles = StyleSheet.create({
   },
   badgeText: { color: "white", fontSize: 12, fontWeight: "bold" },
   card: {
-    backgroundColor: "#0A0A60",
+    backgroundColor: "#23234cff",
     borderRadius: 15,
     padding: 20,
     margin: 20,
@@ -278,14 +290,16 @@ const styles = StyleSheet.create({
   centeredView: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center",
+    marginHorizontal: "auto",
     marginTop: 22,
+    width: "70%",
   },
   textInput: {
     height: 48,
     borderWidth: 1,
     borderRadius: 15,
     paddingHorizontal: 14,
+    width: "100%",
   },
   modalView: {
     margin: 20,
@@ -299,9 +313,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  button: { borderRadius: 20, padding: 10, elevation: 2 },
-  buttonOpen: { backgroundColor: "#F194FF" },
-  buttonClose: { backgroundColor: "#2196F3" },
+  button: { borderRadius: 20, padding: 10, elevation: 2, width: "100%" },
+  buttonOpen: { backgroundColor: "#ffbb94ff" },
+  buttonClose: { backgroundColor: "#2a3b48ff" },
   textStyle: { color: "white", fontWeight: "bold", textAlign: "center" },
-  modalText: { marginBottom: 15, textAlign: "center" },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center",
+    fontSize: 20,
+    fontWeight: "bold",
+  },
 });
